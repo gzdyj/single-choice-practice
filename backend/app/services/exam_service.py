@@ -68,13 +68,19 @@ def get_exam_by_id(db: Session, exam_id: int) -> Exam | None:
 
 
 def create_exam(db: Session, data, user_id: int) -> Exam:
-    """Create exam and randomly pick questions matching criteria."""
+    """Create exam - support both manual question selection and random auto-pick."""
+    # If question_ids is provided, use actual count for the exam record
+    if data.question_ids and len(data.question_ids) > 0:
+        actual_question_count = len(data.question_ids)
+    else:
+        actual_question_count = data.question_count
+
     exam = Exam(
         title=data.title,
         description=data.description or "",
         category_id=data.category_id,
         difficulty=data.difficulty,
-        question_count=data.question_count,
+        question_count=actual_question_count,
         time_limit_minutes=data.time_limit_minutes,
         passing_score=data.passing_score,
         shuffle_questions=data.shuffle_questions,
@@ -83,19 +89,27 @@ def create_exam(db: Session, data, user_id: int) -> Exam:
     db.add(exam)
     db.flush()  # get exam.id
 
-    # Pick random questions matching criteria
-    q_query = db.query(Question)
-    if data.category_id:
-        q_query = q_query.filter(Question.category_id == data.category_id)
-    if data.difficulty:
-        q_query = q_query.filter(Question.difficulty == data.difficulty)
-
-    all_questions = q_query.all()
-    if len(all_questions) < data.question_count:
-        # Not enough questions: use all available
-        selected = all_questions
+    # Manual selection mode
+    if data.question_ids and len(data.question_ids) > 0:
+        selected = db.query(Question).filter(Question.id.in_(data.question_ids)).all()
+        if len(selected) != len(data.question_ids):
+            found_ids = {q.id for q in selected}
+            missing = [qid for qid in data.question_ids if qid not in found_ids]
+            raise ValueError(f"部分题目不存在: {missing}")
     else:
-        selected = random.sample(all_questions, data.question_count)
+        # Auto-random selection matching criteria
+        q_query = db.query(Question)
+        if data.category_id:
+            q_query = q_query.filter(Question.category_id == data.category_id)
+        if data.difficulty:
+            q_query = q_query.filter(Question.difficulty == data.difficulty)
+
+        all_questions = q_query.all()
+        if len(all_questions) < data.question_count:
+            # Not enough questions: use all available
+            selected = all_questions
+        else:
+            selected = random.sample(all_questions, data.question_count)
 
     # Create ExamQuestion records
     for idx, q in enumerate(selected):

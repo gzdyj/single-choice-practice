@@ -15,6 +15,7 @@ class ExamCreate(BaseModel):
     time_limit_minutes: int = Field(30, ge=1, le=300, description="时间限制（分钟）")
     passing_score: int = Field(60, ge=0, le=100, description="及格分数（百分比）")
     shuffle_questions: bool = Field(True, description="是否随机打乱题目顺序")
+    question_ids: Optional[list[int]] = Field(None, description="手动指定题目ID列表，优先级高于随机选题")
 
 
 class ExamUpdate(BaseModel):

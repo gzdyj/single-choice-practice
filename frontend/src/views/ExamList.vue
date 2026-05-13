@@ -1,7 +1,7 @@
 <template>
   <div>
-    <!-- Teacher tools -->
-    <div class="toolbar" v-if="isTeacher">
+    <!-- Teacher/Admin tools -->
+    <div class="toolbar" v-if="isTeacher || isAdmin">
       <el-button type="primary" icon="el-icon-plus" @click="showCreateDialog">创建考试</el-button>
       <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
     </div>
@@ -25,7 +25,7 @@
     </el-card>
 
     <!-- Teacher/Admin: Table view -->
-    <el-card v-if="isTeacher">
+    <el-card v-if="isTeacher || isAdmin">
       <el-empty v-if="!loading && exams.length === 0" description="暂无考试，点击上方创建" />
       <el-table v-if="exams.length > 0" :data="exams" v-loading="loading" stripe>
         <el-table-column prop="id" label="ID" width="60" />

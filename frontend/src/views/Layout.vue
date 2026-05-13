@@ -31,7 +31,7 @@
           <i class="el-icon-document-copy"></i>
           <span slot="title">考试记录</span>
         </el-menu-item>
-        <el-submenu v-if="isTeacher" index="question-mgmt">
+        <el-submenu v-if="isTeacher || isAdmin" index="question-mgmt">
           <template slot="title">
             <i class="el-icon-document"></i>
             <span slot="title">题库管理</span>
