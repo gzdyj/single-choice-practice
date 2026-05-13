@@ -36,10 +36,28 @@
       </el-col>
     </el-row>
 
+    <!-- Filter Bar -->
+    <el-card class="filter-card">
+      <el-form :inline="true" size="small" style="margin-bottom:0">
+        <el-form-item label="分类">
+          <el-select v-model="filterCategoryId" placeholder="全部分类" clearable style="width:160px" @change="nextQuestion">
+            <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="难度">
+          <el-select v-model="filterDifficulty" placeholder="全部难度" clearable style="width:120px" @change="nextQuestion">
+            <el-option label="简单" value="easy" />
+            <el-option label="中等" value="medium" />
+            <el-option label="困难" value="hard" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
     <!-- Question Card -->
     <el-card v-if="question" class="question-card">
       <div class="question-header">
-        <el-tag size="small" type="info">{{ question.subject || '未分类' }}</el-tag>
+        <el-tag size="small" type="info">{{ categoryName(question.category_id) || question.subject || '未分类' }}</el-tag>
         <el-tag :type="difficultyTag(question.difficulty)" size="small" style="margin-left: 8px">
           {{ difficultyLabel(question.difficulty) }}
         </el-tag>
@@ -102,6 +120,7 @@
 
 <script>
 import { getRandomQuestion, submitAnswer, getStats } from '@/api/practice'
+import { getAllCategories } from '@/api/category'
 
 export default {
   name: 'Practice',
@@ -112,6 +131,9 @@ export default {
       answered: false,
       isCorrect: false,
       noMore: false,
+      categories: [],
+      filterCategoryId: '',
+      filterDifficulty: '',
       stats: { total_attempts: 0, correct_count: 0, wrong_count: 0, accuracy: 0 },
       options: [
         { key: 'A', value: '' },
@@ -123,9 +145,21 @@ export default {
   },
   created() {
     this.loadStats()
+    this.loadCategories()
     this.nextQuestion()
   },
   methods: {
+    async loadCategories() {
+      try {
+        const res = await getAllCategories()
+        this.categories = res.data
+      } catch { /* ignore */ }
+    },
+    categoryName(categoryId) {
+      if (!categoryId || !this.categories.length) return ''
+      const c = this.categories.find(c => c.id === categoryId)
+      return c ? c.name : ''
+    },
     async loadStats() {
       try {
         const res = await getStats()
@@ -138,7 +172,10 @@ export default {
       this.isCorrect = false
       this.noMore = false
       try {
-        const res = await getRandomQuestion()
+        const params = {}
+        if (this.filterCategoryId) params.category_id = this.filterCategoryId
+        if (this.filterDifficulty) params.difficulty = this.filterDifficulty
+        const res = await getRandomQuestion(params)
         this.question = res.data
         this.options = [
           { key: 'A', value: this.question.option_a },
@@ -235,4 +272,5 @@ export default {
 }
 .question-actions { text-align: center; }
 .empty-state { text-align: center; padding: 60px 0; }
+.filter-card { max-width: 800px; margin: 0 auto 16px; }
 </style>

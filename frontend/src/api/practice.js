@@ -1,7 +1,7 @@
 import request from './index'
 
-export function getRandomQuestion() {
-  return request.get('/practice/random')
+export function getRandomQuestion(params) {
+  return request.get('/practice/random', { params })
 }
 
 export function submitAnswer(data) {

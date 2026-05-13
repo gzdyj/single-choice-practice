@@ -95,10 +95,13 @@
     </el-dialog>
 
     <!-- Reset Password Dialog -->
-    <el-dialog title="重置密码" :visible.sync="pwdDialogVisible" width="400px">
+    <el-dialog title="重置密码" :visible.sync="pwdDialogVisible" width="400px" :close-on-click-modal="false">
       <el-form ref="pwdForm" :model="pwdForm" :rules="pwdRules" label-width="80px">
         <el-form-item label="新密码" prop="new_password">
           <el-input v-model="pwdForm.new_password" type="password" show-password />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirm_password">
+          <el-input v-model="pwdForm.confirm_password" type="password" show-password />
         </el-form-item>
       </el-form>
       <span slot="footer">
@@ -137,9 +140,21 @@ export default {
       pwdDialogVisible: false,
       pwdLoading: false,
       pwdUserId: null,
-      pwdForm: { new_password: '' },
+      pwdForm: { new_password: '', confirm_password: '' },
       pwdRules: {
-        new_password: [{ required: true, message: '请输入新密码', trigger: 'blur' }, { min: 4, message: '密码至少4位' }],
+        new_password: [
+          { required: true, message: '请输入新密码', trigger: 'blur' },
+          { min: 8, message: '密码至少8位', trigger: 'blur' },
+          { pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]).{8,}$/, message: '密码需包含大小写字母、数字和特殊字符', trigger: 'blur' },
+        ],
+        confirm_password: [
+          { required: true, message: '请确认密码', trigger: 'blur' },
+          { validator: (rule, value, callback) => {
+            if (value !== this.pwdForm.new_password) {
+              callback(new Error('两次输入的密码不一致'))
+            } else { callback() }
+          }, trigger: 'blur' },
+        ],
       },
     }
   },

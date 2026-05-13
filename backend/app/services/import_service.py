@@ -36,7 +36,7 @@ def _validate_row(row: dict, line: int) -> list[str]:
 
 def _row_to_question(row: dict, created_by: int) -> dict:
     """Convert a parsed row dict to question model attributes."""
-    return {
+    result = {
         "subject": row.get("subject", "").strip(),
         "difficulty": row.get("difficulty", "medium").strip().lower() or "medium",
         "question_text": row.get("question_text", "").strip(),
@@ -48,6 +48,14 @@ def _row_to_question(row: dict, created_by: int) -> dict:
         "explanation": row.get("explanation", "").strip(),
         "created_by": created_by,
     }
+    # Optional category_id field (supports import file with category_id column)
+    cat_val = row.get("category_id")
+    if cat_val is not None and str(cat_val).strip():
+        try:
+            result["category_id"] = int(str(cat_val).strip())
+        except (ValueError, TypeError):
+            pass  # silently ignore invalid category_id
+    return result
 
 
 def _bulk_insert(db: Session, data_list: list[dict]) -> ImportResult:

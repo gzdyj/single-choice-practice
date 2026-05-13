@@ -7,6 +7,7 @@ RUN sed -i 's|deb.debian.org|mirrors.tencent.com|g' /etc/apt/sources.list.d/debi
     sed -i 's|deb.debian.org|mirrors.tencent.com|g' /etc/apt/sources.list && \
     apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Use domestic PyPI mirror

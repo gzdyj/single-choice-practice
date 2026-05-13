@@ -6,6 +6,11 @@
 
     <el-card class="filter-card">
       <el-form :inline="true" :model="filter" size="small">
+        <el-form-item label="分类">
+          <el-select v-model="filter.category_id" placeholder="全部分类" clearable style="width: 160px">
+            <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="学科">
           <el-select v-model="filter.subject" placeholder="全部" clearable style="width: 150px">
             <el-option v-for="s in subjects" :key="s" :label="s" :value="s" />
@@ -29,11 +34,22 @@
     </el-card>
 
     <el-card>
-      <el-table :data="questions" v-loading="loading" stripe highlight-current-row>
+      <!-- Empty state -->
+      <el-empty v-if="!loading && questions.length === 0" description="暂无题目，请先导入题库">
+        <el-button type="primary" @click="$router.push('/import')" v-if="isTeacher">导入题库</el-button>
+        <el-button type="primary" @click="$router.push('/questions/create')" v-if="isTeacher">新增题目</el-button>
+      </el-empty>
+
+      <el-table v-if="questions.length > 0" :data="questions" v-loading="loading" stripe highlight-current-row>
         <el-table-column prop="id" label="ID" width="60" />
         <el-table-column label="题目" min-width="350">
           <template slot-scope="{ row }">
             <div class="question-text">{{ row.question_text }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="分类" width="120">
+          <template slot-scope="{ row }">
+            {{ categoryName(row.category_id) || '-' }}
           </template>
         </el-table-column>
         <el-table-column prop="subject" label="学科" width="100" />
@@ -71,8 +87,9 @@
     <el-dialog title="题目详情" :visible.sync="viewVisible" width="700px">
       <div v-if="viewData">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="学科">{{ viewData.subject || '未分类' }}</el-descriptions-item>
+          <el-descriptions-item label="分类">{{ categoryName(viewData.category_id) || '未分类' }}</el-descriptions-item>
           <el-descriptions-item label="难度">{{ difficultyLabel(viewData.difficulty) }}</el-descriptions-item>
+          <el-descriptions-item label="学科">{{ viewData.subject || '-' }}</el-descriptions-item>
           <el-descriptions-item label="题目" :span="2">{{ viewData.question_text }}</el-descriptions-item>
         </el-descriptions>
         <div class="options-list">
@@ -99,6 +116,7 @@
 
 <script>
 import { getQuestions, deleteQuestion, getSubjects } from '@/api/question'
+import { getAllCategories } from '@/api/category'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -107,11 +125,12 @@ export default {
     return {
       questions: [],
       subjects: [],
+      categories: [],
       total: 0,
       page: 1,
       pageSize: 20,
       loading: false,
-      filter: { subject: '', difficulty: '', keyword: '' },
+      filter: { category_id: '', subject: '', difficulty: '', keyword: '' },
       viewVisible: false,
       viewData: null,
     }
@@ -119,6 +138,7 @@ export default {
   computed: { ...mapGetters(['isTeacher']) },
   created() {
     this.fetchSubjects()
+    this.fetchCategories()
     this.fetchData()
   },
   methods: {
@@ -128,10 +148,26 @@ export default {
         this.subjects = res.data
       } catch { /* ignore */ }
     },
+    async fetchCategories() {
+      try {
+        const res = await getAllCategories()
+        this.categories = res.data
+      } catch { /* ignore */ }
+    },
+    categoryName(categoryId) {
+      if (!categoryId || !this.categories.length) return ''
+      const c = this.categories.find(c => c.id === categoryId)
+      return c ? c.name : ''
+    },
     async fetchData() {
       this.loading = true
       try {
-        const res = await getQuestions({ page: this.page, page_size: this.pageSize, ...this.filter })
+        const params = { page: this.page, page_size: this.pageSize }
+        if (this.filter.category_id) params.category_id = this.filter.category_id
+        if (this.filter.subject) params.subject = this.filter.subject
+        if (this.filter.difficulty) params.difficulty = this.filter.difficulty
+        if (this.filter.keyword) params.keyword = this.filter.keyword
+        const res = await getQuestions(params)
         this.questions = res.data.items
         this.total = res.data.total
       } finally {
@@ -139,7 +175,7 @@ export default {
       }
     },
     resetFilter() {
-      this.filter = { subject: '', difficulty: '', keyword: '' }
+      this.filter = { category_id: '', subject: '', difficulty: '', keyword: '' }
       this.page = 1
       this.fetchData()
     },

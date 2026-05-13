@@ -19,9 +19,17 @@
           <i class="el-icon-edit"></i>
           <span slot="title">刷题练习</span>
         </el-menu-item>
+        <el-menu-item index="/exams">
+          <i class="el-icon-tickets"></i>
+          <span slot="title">考试中心</span>
+        </el-menu-item>
         <el-menu-item index="/history">
           <i class="el-icon-time"></i>
           <span slot="title">练习记录</span>
+        </el-menu-item>
+        <el-menu-item index="/exam-history">
+          <i class="el-icon-document-copy"></i>
+          <span slot="title">考试记录</span>
         </el-menu-item>
         <el-submenu v-if="isTeacher" index="question-mgmt">
           <template slot="title">
@@ -31,6 +39,7 @@
           <el-menu-item index="/questions">题目列表</el-menu-item>
           <el-menu-item index="/questions/create">新增题目</el-menu-item>
           <el-menu-item index="/import">题库导入</el-menu-item>
+          <el-menu-item index="/categories">分类管理</el-menu-item>
         </el-submenu>
         <el-menu-item v-if="isAdmin" index="/users">
           <i class="el-icon-user"></i>
@@ -45,6 +54,10 @@
       <el-header class="header">
         <div class="header-left">
           <i :class="toggleIcon" class="toggle-btn" @click="toggleSidebar"></i>
+          <el-breadcrumb separator="/" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/practice' }">刷题系统</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="$route.meta.title">{{ $route.meta.title }}</el-breadcrumb-item>
+          </el-breadcrumb>
         </div>
         <div class="header-right">
           <el-dropdown trigger="click" @command="handleCommand">
@@ -133,6 +146,10 @@ export default {
   font-size: 20px;
   cursor: pointer;
   color: #606266;
+}
+.breadcrumb {
+  margin-left: 20px;
+  font-size: 14px;
 }
 .toggle-btn:hover {
   color: #409eff;

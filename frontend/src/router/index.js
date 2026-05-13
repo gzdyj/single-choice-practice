@@ -36,6 +36,36 @@ const routes = [
         meta: { title: '练习记录', icon: 'time' },
       },
       {
+        path: 'exams',
+        name: 'Exams',
+        component: () => import('@/views/ExamList.vue'),
+        meta: { title: '考试中心', icon: 'tickets' },
+      },
+      {
+        path: 'exam-taking',
+        name: 'ExamTaking',
+        component: () => import('@/views/ExamTaking.vue'),
+        meta: { title: '考试进行中', icon: 'time' },
+      },
+      {
+        path: 'exam-result',
+        name: 'ExamResult',
+        component: () => import('@/views/ExamResult.vue'),
+        meta: { title: '考试结果', icon: 'check' },
+      },
+      {
+        path: 'exam-result/:attemptId?',
+        name: 'ExamResultById',
+        component: () => import('@/views/ExamResult.vue'),
+        meta: { title: '考试结果', icon: 'check' },
+      },
+      {
+        path: 'exam-history',
+        name: 'ExamHistory',
+        component: () => import('@/views/ExamHistory.vue'),
+        meta: { title: '考试记录', icon: 'time' },
+      },
+      {
         path: 'questions',
         name: 'Questions',
         component: () => import('@/views/Questions.vue'),
@@ -60,6 +90,12 @@ const routes = [
         meta: { title: '题库导入', icon: 'upload', roles: ['admin', 'teacher'] },
       },
       {
+        path: 'categories',
+        name: 'Categories',
+        component: () => import('@/views/Categories.vue'),
+        meta: { title: '分类管理', icon: 'collection', roles: ['admin', 'teacher'] },
+      },
+      {
         path: 'users',
         name: 'Users',
         component: () => import('@/views/Users.vue'),
@@ -68,6 +104,14 @@ const routes = [
     ],
   },
 ]
+
+// 404 route must be last
+routes.push({
+  path: '*',
+  name: 'NotFound',
+  component: () => import('@/views/NotFound.vue'),
+  meta: { requiresAuth: false },
+})
 
 const router = new VueRouter({
   routes,

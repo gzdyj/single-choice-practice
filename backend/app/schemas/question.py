@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class QuestionCreate(BaseModel):
+    category_id: Optional[int] = Field(default=None)
     subject: str = Field(default="", max_length=64)
     difficulty: str = Field(default="medium", pattern="^(easy|medium|hard)$")
     question_text: str = Field(..., min_length=1)
@@ -17,6 +18,7 @@ class QuestionCreate(BaseModel):
 
 
 class QuestionUpdate(BaseModel):
+    category_id: Optional[int] = Field(default=None)
     subject: Optional[str] = Field(default=None, max_length=64)
     difficulty: Optional[str] = Field(default=None, pattern="^(easy|medium|hard)$")
     question_text: Optional[str] = None
@@ -30,6 +32,7 @@ class QuestionUpdate(BaseModel):
 
 class QuestionResponse(BaseModel):
     id: int
+    category_id: Optional[int] = None
     subject: str
     difficulty: str
     question_text: str
@@ -38,6 +41,26 @@ class QuestionResponse(BaseModel):
     option_c: str
     option_d: str
     correct_answer: str
+    explanation: str
+    created_by: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class PracticeQuestionResponse(BaseModel):
+    """刷题时返回的题目（隐藏 correct_answer，防止作弊）"""
+    id: int
+    category_id: Optional[int] = None
+    subject: str
+    difficulty: str
+    question_text: str
+    option_a: str
+    option_b: str
+    option_c: str
+    option_d: str
     explanation: str
     created_by: int
     created_at: datetime

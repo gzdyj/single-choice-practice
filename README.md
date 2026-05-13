@@ -29,7 +29,7 @@ docker-compose up -d --build
 ### 默认管理员
 
 - 用户名：`admin`
-- 密码：`admin123`
+- 密码：`Admin@123`
 
 ## 用户角色
 
@@ -58,7 +58,7 @@ docker-compose up -d --build
 | `SECRET_KEY` | `change-this-...` | JWT 签名密钥（生产环境请更换） |
 | `ACCESS_TOKEN_EXPIRE_HOURS` | `8` | Token 过期时间（小时） |
 | `DEFAULT_ADMIN_USERNAME` | `admin` | 默认超级管理员用户名 |
-| `DEFAULT_ADMIN_PASSWORD` | `admin123` | 默认超级管理员密码 |
+| `DEFAULT_ADMIN_PASSWORD` | `Admin@123` | 默认超级管理员密码 |
 
 ## 安全建议（生产环境）
 

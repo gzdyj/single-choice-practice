@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, Text, DateTime
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 
 from ..database import Base
 
@@ -9,7 +10,8 @@ class Question(Base):
     __tablename__ = "questions"
 
     id = Column(Integer, primary_key=True, index=True)
-    subject = Column(String(64), default="")          # 学科分类
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=True, index=True)
+    subject = Column(String(64), default="")          # 学科分类（旧字段，逐步迁移至 category_id）
     difficulty = Column(String(16), default="medium")  # easy / medium / hard
     question_text = Column(Text, nullable=False)
     option_a = Column(String(512), nullable=False)
@@ -21,3 +23,5 @@ class Question(Base):
     created_by = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    category = relationship("Category", lazy="joined")

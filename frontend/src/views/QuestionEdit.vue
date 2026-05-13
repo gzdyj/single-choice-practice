@@ -5,8 +5,14 @@
     </div>
 
     <el-form ref="form" :model="form" :rules="rules" label-width="100px" style="max-width: 800px">
-      <el-form-item label="学科分类" prop="subject">
-        <el-input v-model="form.subject" placeholder="如：数学、英语、计算机" />
+      <el-form-item label="分类" prop="category_id">
+        <el-select v-model="form.category_id" placeholder="选择分类" clearable style="width: 250px">
+          <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
+        </el-select>
+        <span style="margin-left:8px;color:#909399;font-size:12px">若没有合适的分类，请先到分类管理添加</span>
+      </el-form-item>
+      <el-form-item label="学科标签">
+        <el-input v-model="form.subject" placeholder="保留原有学科作为标签（选填）" maxlength="64" />
       </el-form-item>
       <el-form-item label="难度" prop="difficulty">
         <el-select v-model="form.difficulty" style="width: 200px">
@@ -51,6 +57,7 @@
 
 <script>
 import { createQuestion, getQuestion, updateQuestion } from '@/api/question'
+import { getAllCategories } from '@/api/category'
 
 export default {
   name: 'QuestionEdit',
@@ -58,8 +65,10 @@ export default {
     return {
       isEdit: false,
       questionId: null,
+      categories: [],
       submitLoading: false,
       form: {
+        category_id: null,
         subject: '',
         difficulty: 'medium',
         question_text: '',
@@ -81,6 +90,7 @@ export default {
     }
   },
   created() {
+    this.loadCategories()
     const id = this.$route.params.id
     if (id) {
       this.isEdit = true
@@ -89,12 +99,19 @@ export default {
     }
   },
   methods: {
+    async loadCategories() {
+      try {
+        const res = await getAllCategories()
+        this.categories = res.data
+      } catch { /* ignore */ }
+    },
     async loadQuestion() {
       try {
         const res = await getQuestion(this.questionId)
         const q = res.data
         this.form = {
-          subject: q.subject,
+          category_id: q.category_id || null,
+          subject: q.subject || '',
           difficulty: q.difficulty,
           question_text: q.question_text,
           option_a: q.option_a,

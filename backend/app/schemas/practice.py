@@ -21,6 +21,7 @@ class PracticeHistoryItem(BaseModel):
     id: int
     question_id: int
     question_text: str
+    category_id: Optional[int] = None
     subject: str
     difficulty: str
     user_answer: str

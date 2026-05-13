@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from ..models.user import User
+from ..models.practice import PracticeRecord
 from ..schemas.user import UserCreate, UserUpdate
 from .auth_service import hash_password
 
@@ -80,5 +81,7 @@ def delete_user(db: Session, user_id: int) -> None:
         admin_count = db.query(User).filter(User.role == "admin").count()
         if admin_count <= 1:
             raise ValueError("不能删除唯一的超级管理员")
+    # 级联删除用户的练习记录
+    db.query(PracticeRecord).filter(PracticeRecord.user_id == user_id).delete()
     db.delete(user)
     db.commit()

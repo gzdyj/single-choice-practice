@@ -16,6 +16,7 @@ def get_question_list(
     subject: str | None = None,
     difficulty: str | None = None,
     keyword: str | None = None,
+    category_id: int | None = None,
 ) -> tuple[list[Question], int]:
     query = db.query(Question)
     if subject:
@@ -28,6 +29,8 @@ def get_question_list(
             Question.subject.contains(keyword),
         )
         query = query.filter(keyword_filter)
+    if category_id is not None:
+        query = query.filter(Question.category_id == category_id)
     total = query.count()
     offset = (page - 1) * page_size
     items = query.order_by(Question.id).offset(offset).limit(page_size).all()
@@ -36,6 +39,7 @@ def get_question_list(
 
 def create_question(db: Session, data: QuestionCreate, user_id: int) -> Question:
     question = Question(
+        category_id=data.category_id,
         subject=data.subject,
         difficulty=data.difficulty,
         question_text=data.question_text,

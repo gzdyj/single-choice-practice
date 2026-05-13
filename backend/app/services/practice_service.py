@@ -6,7 +6,12 @@ from ..models.practice import PracticeRecord
 from ..schemas.practice import PracticeResult, PracticeHistoryItem
 
 
-def get_random_question(db: Session, user_id: int) -> Question | None:
+def get_random_question(
+    db: Session,
+    user_id: int,
+    category_id: int | None = None,
+    difficulty: str | None = None,
+) -> Question | None:
     """Get a random question that the user hasn't answered correctly before."""
     # Subquery: IDs of questions the user answered correctly
     correct_ids = (
@@ -18,12 +23,12 @@ def get_random_question(db: Session, user_id: int) -> Question | None:
         .subquery()
     )
 
-    question = (
-        db.query(Question)
-        .filter(not_(Question.id.in_(correct_ids)))
-        .order_by(func.random())
-        .first()
-    )
+    query = db.query(Question).filter(not_(Question.id.in_(correct_ids)))
+    if category_id is not None:
+        query = query.filter(Question.category_id == category_id)
+    if difficulty is not None:
+        query = query.filter(Question.difficulty == difficulty)
+    question = query.order_by(func.random()).first()
     return question
 
 
@@ -61,14 +66,23 @@ def get_history(
     user_id: int,
     page: int = 1,
     page_size: int = 20,
+    subject: str | None = None,
+    difficulty: str | None = None,
+    category_id: int | None = None,
 ) -> tuple[list[PracticeHistoryItem], int]:
-    """Get practice history for a user."""
+    """Get practice history for a user, optionally filtered by subject/difficulty/category."""
     query = (
         db.query(PracticeRecord, Question)
         .join(Question, PracticeRecord.question_id == Question.id)
         .filter(PracticeRecord.user_id == user_id)
-        .order_by(PracticeRecord.created_at.desc())
     )
+    if subject:
+        query = query.filter(Question.subject == subject)
+    if difficulty:
+        query = query.filter(Question.difficulty == difficulty)
+    if category_id is not None:
+        query = query.filter(Question.category_id == category_id)
+    query = query.order_by(PracticeRecord.created_at.desc())
     total = query.count()
     offset = (page - 1) * page_size
     items = query.offset(offset).limit(page_size).all()
@@ -79,6 +93,7 @@ def get_history(
             id=record.id,
             question_id=question.id,
             question_text=question.question_text,
+            category_id=question.category_id,
             subject=question.subject,
             difficulty=question.difficulty,
             user_answer=record.user_answer,

@@ -26,5 +26,9 @@ backend/data/quiz.db
 .DS_Store
 Thumbs.db
 
+# Temp import files
+*.xlsx
+import_questions.py
+
 # Docker
 .dockerignore

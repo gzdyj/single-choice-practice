@@ -13,11 +13,19 @@
           <el-input
             v-model="form.password"
             type="password"
-            placeholder="密码"
+            placeholder="密码（至少8位，需含大小写字母、数字和特殊字符）"
             prefix-icon="el-icon-lock"
             size="large"
             show-password
+            @input="checkPasswordStrength"
           />
+          <!-- Password strength indicator -->
+          <div class="password-strength" v-if="form.password.length > 0">
+            <div class="strength-bar">
+              <div :class="['strength-fill', strengthLevel]" :style="{ width: strengthPercent + '%' }"></div>
+            </div>
+            <span :class="['strength-text', strengthLevel]">{{ strengthLabel }}</span>
+          </div>
         </el-form-item>
         <el-form-item prop="confirmPassword">
           <el-input
@@ -59,14 +67,36 @@ export default {
     return {
       form: { username: '', nickname: '', password: '', confirmPassword: '' },
       loading: false,
+      strengthLevel: '',
+      strengthPercent: 0,
+      strengthLabel: '',
       rules: {
         username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-        password: [{ required: true, message: '请输入密码', trigger: 'blur' }, { min: 4, message: '密码至少4位', trigger: 'blur' }],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { min: 8, message: '密码至少8位', trigger: 'blur' },
+          { pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]).{8,}$/, message: '需包含大小写字母、数字和特殊字符', trigger: 'blur' },
+        ],
         confirmPassword: [{ required: true, message: '请确认密码', trigger: 'blur' }, { validator: validatePass, trigger: 'blur' }],
       },
     }
   },
   methods: {
+    checkPasswordStrength() {
+      const pwd = this.form.password
+      let score = 0
+      if (pwd.length >= 8) score++
+      if (pwd.length >= 12) score++
+      if (/[a-z]/.test(pwd)) score++
+      if (/[A-Z]/.test(pwd)) score++
+      if (/\d/.test(pwd)) score++
+      if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(pwd)) score++
+      const maxScore = 6
+      this.strengthPercent = Math.round((score / maxScore) * 100)
+      if (score <= 2) { this.strengthLevel = 'weak'; this.strengthLabel = '弱' }
+      else if (score <= 4) { this.strengthLevel = 'medium'; this.strengthLabel = '中' }
+      else { this.strengthLevel = 'strong'; this.strengthLabel = '强' }
+    },
     async handleRegister() {
       const valid = await this.$refs.form.validate().catch(() => false)
       if (!valid) return
@@ -119,4 +149,29 @@ export default {
   color: #409eff;
   text-decoration: none;
 }
+.password-strength {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+  gap: 8px;
+}
+.strength-bar {
+  flex: 1;
+  height: 6px;
+  background: #e4e7ed;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.strength-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+.strength-fill.weak { background: #f56c6c; }
+.strength-fill.medium { background: #e6a23c; }
+.strength-fill.strong { background: #67c23a; }
+.strength-text { font-size: 12px; white-space: nowrap; }
+.strength-text.weak { color: #f56c6c; }
+.strength-text.medium { color: #e6a23c; }
+.strength-text.strong { color: #67c23a; }
 </style>

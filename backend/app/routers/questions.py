@@ -21,11 +21,14 @@ def list_questions(
     subject: str = Query(None),
     difficulty: str = Query(None, regex="^(easy|medium|hard)$"),
     keyword: str = Query(None),
+    category_id: int = Query(None),
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """获取题目列表（分页，支持多条件筛选）"""
-    items, total = question_service.get_question_list(db, page, page_size, subject, difficulty, keyword)
+    """获取题目列表（分页，支持多条件筛选，可按分类筛选）"""
+    items, total = question_service.get_question_list(
+        db, page, page_size, subject, difficulty, keyword, category_id
+    )
     return QuestionListResponse(total=total, items=items)
 
 
